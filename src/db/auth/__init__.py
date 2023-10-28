@@ -1,8 +1,8 @@
 from db import db
 
-from schemas.auth import User,Signup
+from schemas import User,Signup
 
-from auth.utils import hash_password
+from db.auth.utils import hash_password
 
 
 
@@ -31,7 +31,7 @@ async def get_user(username, **kwargs) -> User:
 
 
 async def get_password(username):
-    return (await collection.find_one({"username":username}))["password"]
+    return (await collection.find_one({"username":username}, {"password":1, "_id":0}))["password"]
 
 async def check_password(username, password):
     user = await get_user(username)
