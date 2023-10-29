@@ -31,10 +31,10 @@ async def get_user(username, **kwargs) -> User:
 
 
 async def get_password(username):
-    return (await collection.find_one({"username":username}, {"password":1, "_id":0}))["password"]
+    user = (await collection.find_one({"username":username}, {"password":1, "_id":0}))
+    return user["password"] if user else None
 
 async def check_password(username, password):
-    user = await get_user(username)
     if hash_password(password) == (await get_password(username)):
         return True
     return False
