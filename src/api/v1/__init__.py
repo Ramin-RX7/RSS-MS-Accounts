@@ -46,6 +46,12 @@ async def profile(user:User=Depends(jwt_object)):
     return user
 
 
+@router.put("/profile/",)
+async def profile_update(new_data:Profile, user:User=Depends(jwt_object)):
+    user = user.model_copy(update=new_data.model_dump())
+    await update_user(user.username, user)
+    return Result()
+
 
 @router.delete("/profile/")
 async def profile_delete(user:User=Depends(jwt_object)):
