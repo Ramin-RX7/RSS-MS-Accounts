@@ -45,3 +45,9 @@ async def login(data:Login):
 async def profile(user:User=Depends(jwt_object)):
     return user
 
+
+
+@router.delete("/profile/")
+async def profile_delete(user:User=Depends(jwt_object)):
+    await delete_user(user.username)
+    return {}
