@@ -20,14 +20,20 @@ class Login(BaseModel):
     password : str
 
 
-class User(BaseModel):
+class Profile(BaseModel):
+    first_name: str|None = None
+    last_name : str|None = None
+    birth_date: datetime|None = None
+
+
+class User(Profile, BaseModel):
     # _id : ObjectId|None
     username: str
     email: str
     # password: str   #? Commented out so it won't be retrieved from database (retrieved but not saved)
     first_name: str|None = None
     last_name : str|None = None
-    birth_date: datetime
+    birth_date: datetime|None = None
     is_admin  : bool = False
     is_active : bool = True
     is_superuser: bool = False
