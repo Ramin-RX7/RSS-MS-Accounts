@@ -2,7 +2,7 @@ from fastapi import APIRouter,Depends
 from fastapi.responses import JSONResponse
 
 from db import db
-from db.auth import add_user,check_password,delete_user,update_user
+from db.auth import add_user,check_password,delete_user, update_password,update_user
 from db.auth.errors import InvalidCredentials,UserAlreadyExists
 from schemas import Signup,Login,User,Result,Profile
 from auth.jwt_auth import JWTAuth
@@ -28,13 +28,19 @@ async def signup(user_data:Signup):
     if not existing_users:
         await add_user(user_data)
         return JSONResponse(Result().model_dump(), status_code=201)
-    return JSONResponse(Result.resolve_error(UserAlreadyExists).model_dump(), status_code=403)
+    return JSONResponse(
+        Result.resolve_error(UserAlreadyExists).model_dump(),
+        status_code=403
+    )
 
 
 @router.post('/login/', status_code=200)
 async def login(data:Login):
     if not await check_password(data.username, data.password):
-        return JSONResponse(Result.resolve_error(InvalidCredentials).model_dump(), status_code=403)
+        return JSONResponse(
+            Result.resolve_error(InvalidCredentials).model_dump(),
+            status_code=403
+        )
     return Result().model_dump()
 
 
