@@ -41,6 +41,7 @@ async def login(data:Login):
     return Result().model_dump()
 
 
-# @router.get("/profile/")
-# async def profile(user: Annotated[dict, Depends(jwt_object)]):
-#     return user
+@router.get("/profile/")
+async def profile(user:User=Depends(jwt_object)):
+    return user
+
