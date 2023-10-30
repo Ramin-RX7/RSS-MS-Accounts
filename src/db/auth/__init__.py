@@ -48,6 +48,10 @@ async def update_user(username, new_data:User):
     assert username == new_data.username
     res = await collection.find_one_and_update(
         {"username":username},
-        {"$set":new_data.model_dump(exclude_defaults=True)}
+
+
+async def update_password(username:str, new_password:str):
+    res = await collection.find_one_and_update(
+        {"username":username},
+        {"$set":{"password": hash_password(new_password)}}
     )
-    #
