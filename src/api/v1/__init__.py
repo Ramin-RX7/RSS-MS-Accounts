@@ -5,17 +5,17 @@ from fastapi import APIRouter,Depends,Request,HTTPException,Body
 from fastapi.responses import JSONResponse
 
 from db import db,query
-from db.auth import add_user,get_user,check_password
+from db.auth import add_user,get_user,check_password,delete_user
 from db.auth.errors import InvalidCredentials,UserAlreadyExists
-from schemas import Signup,Login,User,Result
-# from auth.jwt_auth.jwt import JWTAuth
+from schemas import Signup,Login,User,Result,Profile
+from auth.jwt_auth import JWTAuth
 
 
 router = APIRouter(prefix='/v1')
 
 ACCOUNTS_COLLECTION_NAME = "accounts"
 collection = db[ACCOUNTS_COLLECTION_NAME]
-# jwt_object = JWTAuth()
+jwt_object = JWTAuth()
 
 
 
@@ -33,11 +33,12 @@ async def signup(user_data:Signup):
         return JSONResponse(Result().model_dump(), status_code=201)
     return JSONResponse(Result.resolve_error(UserAlreadyExists).model_dump(), status_code=403)
 
-@router.post('/login/')
+
+@router.post('/login/', status_code=200)
 async def login(data:Login):
     if not await check_password(data.username, data.password):
         return JSONResponse(Result.resolve_error(InvalidCredentials).model_dump(), status_code=403)
-    return JSONResponse(Result().model_dump(), 200)
+    return Result().model_dump()
 
 
 # @router.get("/profile/")
