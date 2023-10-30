@@ -42,3 +42,12 @@ async def check_password(username, password):
 
 async def delete_user(username):
     await collection.delete_one({"username":username})
+
+
+async def update_user(username, new_data:User):
+    assert username == new_data.username
+    res = await collection.find_one_and_update(
+        {"username":username},
+        {"$set":new_data.model_dump(exclude_defaults=True)}
+    )
+    #
