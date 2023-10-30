@@ -1,11 +1,8 @@
-from typing import Annotated
-
-
-from fastapi import APIRouter,Depends,Request,HTTPException,Body
+from fastapi import APIRouter,Depends
 from fastapi.responses import JSONResponse
 
-from db import db,query
-from db.auth import add_user,get_user,check_password,delete_user
+from db import db
+from db.auth import add_user,check_password,delete_user,update_user
 from db.auth.errors import InvalidCredentials,UserAlreadyExists
 from schemas import Signup,Login,User,Result,Profile
 from auth.jwt_auth import JWTAuth
