@@ -1,9 +1,11 @@
-from fastapi import Request,Depends,HTTPException,Header
+from fastapi import Request,HTTPException
 
 import jwt
 
+from db.auth import get_user
+
 from .utils import decode_jwt,generate_tokens
-from schemas import Result
+from schemas import User
 from .exceptions import *
 
 
@@ -17,10 +19,10 @@ class JWTAuth:
     def __init__(self):
         ...
 
-    async def __call__(self, request:Request):
+    async def __call__(self, request:Request) -> User|None:
         username = await self.authenticate(request)
-        # user = await get_user(username)
-        return Result()
+        user = await get_user(username)
+        return user
 
     async def authenticate(self, request):
         access_token = self._get_access_token(request)
