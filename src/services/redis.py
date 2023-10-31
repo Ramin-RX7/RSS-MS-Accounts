@@ -29,3 +29,6 @@ class RedisService:
 
     async def new_client(self, url):
         self.clinet = aioredis.from_url(url or SETTINGS.REDIS_URL)
+
+    async def delete(self, *keys):
+        return await self.client.delete(*keys)
