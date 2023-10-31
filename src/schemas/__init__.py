@@ -1,13 +1,30 @@
 from datetime import datetime
 
+from bson import ObjectId
 from pydantic import BaseModel, model_validator,Field
 
 from db import db
-from .base import *
 from auth.validators import password_validator
+
+
+from .base import *
+from .jwt import *
 
 collection = db["accounts"]
 
+
+
+class Scheme(BaseModel):
+    # created_at: datetime
+    # updated_at: datetime
+    async def save(self, _id=None):
+        collection = db[self._db_collection]
+        id = _id #or self.id
+        doc_data = self.model_dump(exclude_defaults=True)
+        if _id:
+            await collection.insert_one(doc_data)
+        else:
+            await collection.update_one(filter={"_id":id}, update=doc_data)
 
 
 class Signup(BaseModel):
@@ -39,12 +56,16 @@ class ChangePassword(BaseModel):
         password_validator(pw1)
         assert pw1==pw2, "Password and confirm password are not equal"
         return self
+
+class Email(BaseModel):
+    email : str
+
+
+class User(Profile):
+    # id : ObjectId|None = Field(alias="_id")
     username: str
     email: str
-    # password: str   #? Commented out so it won't be retrieved from database (retrieved but not saved)
-    first_name: str|None = None
-    last_name : str|None = None
-    birth_date: datetime|None = None
+    # password: str|None = Field(default=None, exclude=True)
     is_admin  : bool = False
     is_active : bool = True
     is_superuser: bool = False
@@ -53,3 +74,9 @@ class ChangePassword(BaseModel):
 
     class Config:
         extra = "ignore"
+
+    # @field_validator("id",mode="before")
+    # def id_validator(cls, value):
+    #     if type(value)==str:
+    #         return ObjectId(value)
+    #     return value
