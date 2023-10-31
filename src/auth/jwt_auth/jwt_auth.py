@@ -105,6 +105,27 @@ class JWTHandler:
         await self.auth_cache.delete(f"{email}|{jti}")
         return await self.login(email,user_agent)
 
+
+    async def get_user(self, request:Request()) -> User:
+        """
+        Same as `authenticate` method with extension of also retrieving user from db
+
+        Returns:
+        --------
+        `User`: returns the user based on the data from jwt token payload
+
+        Usage:
+        ------
+        ```python
+        @app.get("/profile")
+        async def profile(user:User=Depends(jwt_handler.get_user)):
+            return user.model_dump()
+        ```
+        """
+        jwt = await self.authenticate(request)
+        email = jwt.payload.get("user_identifier")
+        return await get_user(email=email)
+
     async def logout(self, email, jti):
         """Used when user logs out so their data need to be deleted from redis
 
