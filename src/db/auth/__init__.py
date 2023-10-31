@@ -25,9 +25,11 @@ async def add_user(user=Signup):
     return result
 
 
-async def get_user(username, **kwargs) -> User:
-    data = await collection.find_one({"username":username, **kwargs}, )
-    return User(**data) if data else None
+async def get_user(**kwargs) -> User:
+    assert kwargs != {}, "filter need to be set to query over collection"
+    data = await collection.find_one({**kwargs})
+    if data:
+        return User(**data)
 
 
 async def get_password(username):
