@@ -1,8 +1,9 @@
 from fastapi import Request,HTTPException
 
 import jwt
+from db.auth import get_user
 
-from schemas import Result,JWTPayload
+from schemas import Result,JWTPayload,User
 from services import RedisService
 from .utils import (
     decode_jwt,
@@ -35,7 +36,7 @@ class JWTHandler:
         ...
     """
     def __init__(self):
-        self.jwt_object = JWTAuth()
+        self.jwt_auth = JWTAuth()
         self.auth_cache = RedisService()
 
     async def login(self, email:str, user_agent:str) -> dict[str,str]:
@@ -50,8 +51,8 @@ class JWTHandler:
         --------
         `dict[str,str]`: dictionary of {'access':<ACCESS_TOKEN>, 'refresh':<REFRESH_TOKEN>}
         """
-        jti, access, refresh = self.jwt_object.generate_tokens(email)
-        await self.jwt_object.auth_cache.set(f"{email}|{jti}", user_agent)
+        jti, access, refresh = self.jwt_auth.generate_tokens(email)
+        await self.jwt_auth.auth_cache.set(f"{email}|{jti}", user_agent)
         return {
             "access": access,
             "refresh": refresh
@@ -68,7 +69,7 @@ class JWTHandler:
         --------
         `JWT_Scheme`: jwt scheme object built from payload
         """
-        payload = await self.jwt_object.authenticate(request.headers)
+        payload = await self.jwt_auth.authenticate(request.headers)
         email = payload.get("user_identifier")
         await self._validate_cache_data(
             email,
@@ -98,7 +99,7 @@ class JWTHandler:
         --------
         `tuple[str, str, str]`: returns tuple of: jti, access token, refresh token
         """
-        payload = self.jwt_object._get_refresh_payload(refresh_token)
+        payload = self.jwt_auth._get_refresh_payload(refresh_token)
         email = payload.get("user_identifier")
         jti = payload.get("jti")
         await self._validate_cache_data(email, jti, user_agent)
@@ -155,9 +156,9 @@ class JWTAuth:
     Usage:
     ------
     ```python
-    jwt_object = JWTAuth()
+    jwt_auth = JWTAuth()
 
-    jwt_object.authenticate(request.headers)
+    jwt_auth.authenticate(request.headers)
     # Either raised error because of invalid access token or returns the payload
     """
     authentication_header_prefix = 'Token'
