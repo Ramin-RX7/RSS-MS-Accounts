@@ -32,27 +32,27 @@ class JWTHandler:
     jwt_handler = JWTHandler()
 
     @app.get("/protected-url")
-    async def protected_url(email=Depends(jwt_handler)):
+    async def protected_url(jwt:JWTPayload=Depends(jwt_handler)):
         ...
     """
     def __init__(self):
         self.jwt_auth = JWTAuth()
         self.auth_cache = RedisService()
 
-    async def login(self, email:str, user_agent:str) -> dict[str,str]:
+    async def login(self, id:str, user_agent:str) -> dict[str,str]:
         """used when user has given correct credentials and new token must be generated for them.
 
         Args:
         -----
-        - email `(str)`: _email of the user_
+        - id `(str)`: _id of the user (_id field in mongodb)_
         - user_agent `(str)`: _http user-agent header_
 
         Returns:
         --------
         `dict[str,str]`: dictionary of {'access':<ACCESS_TOKEN>, 'refresh':<REFRESH_TOKEN>}
         """
-        jti, access, refresh = self.jwt_auth.generate_tokens(email)
-        await self.jwt_auth.auth_cache.set(f"{email}|{jti}", user_agent)
+        jti, access, refresh = self.jwt_auth.generate_tokens(id)
+        await self.jwt_auth.auth_cache.set(f"{id}|{jti}", user_agent)
         return {
             "access": access,
             "refresh": refresh
@@ -70,9 +70,9 @@ class JWTHandler:
         `JWT_Scheme`: jwt scheme object built from payload
         """
         payload = await self.jwt_auth.authenticate(request.headers)
-        email = payload.get("user_identifier")
+        id = payload.get("user_identifier")
         await self._validate_cache_data(
-            email,
+            id,
             payload.get("jti"),
             request.headers.get("user-agent")
         )
@@ -100,14 +100,14 @@ class JWTHandler:
         `tuple[str, str, str]`: returns tuple of: jti, access token, refresh token
         """
         payload = self.jwt_auth._get_refresh_payload(refresh_token)
-        email = payload.get("user_identifier")
+        id = payload.get("user_identifier")
         jti = payload.get("jti")
-        await self._validate_cache_data(email, jti, user_agent)
-        await self.auth_cache.delete(f"{email}|{jti}")
-        return await self.login(email,user_agent)
+        await self._validate_cache_data(id, jti, user_agent)
+        await self.auth_cache.delete(f"{id}|{jti}")
+        return await self.login(id,user_agent)
 
 
-    async def get_user(self, request:Request()) -> User:
+    async def get_user(self, request:Request) -> User:
         """
         Same as `authenticate` method with extension of also retrieving user from db
 
@@ -124,21 +124,21 @@ class JWTHandler:
         ```
         """
         jwt = await self.authenticate(request)
-        email = jwt.payload.get("user_identifier")
-        return await get_user(email=email)
+        id = jwt.payload.get("user_identifier")
+        return await get_user(_id=id)
 
-    async def logout(self, email, jti):
+    async def logout(self, id, jti):
         """Used when user logs out so their data need to be deleted from redis
 
         Args:
         -----
-        - email `(str)`: _email of the user_
+        - id `(str)`: _id of the user (_id field in mongodb)_
         - jti `(str)`: _jti of the user token payload_
         """
-        await self.auth_cache.delete(f"{email}|{jti}")
+        await self.auth_cache.delete(f"{id}|{jti}")
 
-    async def _validate_cache_data(self, email, jti, user_agent):
-        user_redis_jti = await self.auth_cache.get(f"{email}|{jti}")
+    async def _validate_cache_data(self, id, jti, user_agent):
+        user_redis_jti = await self.auth_cache.get(f"{id}|{jti}")
         if user_redis_jti is None:
             raise PermissionDenied('Not Found in cache, login again.')
         if user_redis_jti != user_agent:
