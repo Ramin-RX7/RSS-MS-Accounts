@@ -1,3 +1,4 @@
+from bson import ObjectId
 from fastapi import Request,HTTPException
 
 import jwt
@@ -125,7 +126,10 @@ class JWTHandler:
         """
         jwt = await self.authenticate(request)
         id = jwt.payload.get("user_identifier")
-        return await get_user(_id=id)
+        user = await get_user(_id=ObjectId(id))
+        if user is None:
+            raise HTTPException("User does not exist")
+        return user
 
     async def logout(self, id, jti):
         """Used when user logs out so their data need to be deleted from redis
