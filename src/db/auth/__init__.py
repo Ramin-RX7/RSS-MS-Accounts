@@ -12,7 +12,7 @@ collection = db["accounts"]
 
 
 async def add_user(user=Signup):
-    if await get_user(user.username):
+    if await get_user(username=user.username):
         return None
     if await collection.find_one({"email":user.email}):
         return None
