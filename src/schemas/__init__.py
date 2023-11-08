@@ -1,7 +1,7 @@
 from datetime import datetime
 
 from bson import ObjectId
-from pydantic import BaseModel, model_validator,Field
+from pydantic import BaseModel, field_serializer, field_validator, model_validator,Field
 
 from db import db
 from auth.validators import password_validator
@@ -62,7 +62,7 @@ class Email(BaseModel):
 
 
 class User(Profile):
-    # id : ObjectId|None = Field(alias="_id")
+    id : ObjectId|None = Field(alias="_id")
     username: str
     email: str
     # password: str|None = Field(default=None, exclude=True)
@@ -74,9 +74,14 @@ class User(Profile):
 
     class Config:
         extra = "ignore"
+        arbitrary_types_allowed=True
 
-    # @field_validator("id",mode="before")
-    # def id_validator(cls, value):
-    #     if type(value)==str:
-    #         return ObjectId(value)
-    #     return value
+    @field_validator("id",mode="before")
+    def id_validator(cls, value):
+        if type(value)==str:
+            return ObjectId(value)
+        return value
+
+    @field_serializer('id')
+    def id_serializer(self, id, _info):
+        return str(id)
