@@ -28,7 +28,7 @@ async def signup(user_data:Signup):
     })
     if not existing_users:
         await add_user(user_data)
-        return JSONResponse(Result().model_dump(), status_code=201)
+        return JSONResponse(Result(msg="ok").model_dump(), status_code=201)
     return JSONResponse(
         Result.resolve_error(UserAlreadyExists).model_dump(),
         status_code=403
@@ -58,11 +58,13 @@ async def profile(user:User=Depends(jwt_object.get_user)):
 @router.put("/profile/",)
 async def profile_update(new_data:Profile, user:User=Depends(jwt_object.get_user)):
     user = user.model_copy(update=new_data.model_dump())
-    await update_user(user.username, user)
-    return Result()
+    await update_user(user.id, user)
+    return Result().model_dump()
 
 
 @router.delete("/profile/")
 async def profile_delete(user:User=Depends(jwt_object.get_user)):
-    await delete_user(user.username)
-    return {}
+    await delete_user(user.id)
+    # logout from all user sessions
+    return Result(message="ok").model_dump()
+
