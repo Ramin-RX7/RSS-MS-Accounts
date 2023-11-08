@@ -76,7 +76,7 @@ class JWTHandler:
             payload.get("jti"),
             request.headers.get("user-agent")
         )
-        return JWTPayload(payload)
+        return JWTPayload(id=id, payload=payload)
     __call__ = authenticate
 
     async def refresh(self, refresh_token:str, user_agent:str):
