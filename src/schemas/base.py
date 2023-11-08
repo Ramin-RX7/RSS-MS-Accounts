@@ -18,10 +18,10 @@ class Result(BaseModel):
     data: dict = {}
     error: Error|None = None
 
-    def __init__(self, __status=True, **data):
+    def __init__(self, __status=True, /, error:Error=None, **data):
         # self.status = __status
         dict.__init__({"status":__status}, **data)
-        return BaseModel.__init__(self, status=__status, **data)
+        return BaseModel.__init__(self, status=__status, error=error, data={**data})
 
     def __bool__(self):
         return self.status
