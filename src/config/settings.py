@@ -12,7 +12,7 @@ class _Config(BaseSettings):
     # REDIX : _RedisConfig
 
     class Config:
-        # env_file = ".env"
+        env_file = ".env"
         extra = "ignore"
         env_nested_delimiter = "_"
 
